@@ -16,7 +16,7 @@ bc = require('bigint-conversion');
     }
 
     sign (m) {
-        m = this.bc.textToBigint(m);
-        return this.bc.bigintToText(this.bcu.modPow(m, this.d, this.publicKey.n));
+        //m = this.bc.textToBigint(m);
+        return this.bcu.modPow(m, this.d, this.publicKey.n);
     }
   }

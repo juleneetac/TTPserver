@@ -19,10 +19,7 @@ let bodysendserver;
 
 async function execrsa(){   //genera las keyPair //sigo necesitando mis claves pub y priv
   keyPair= await rsa.generateRandomKeys();
-  console.log(rsa.publicKey.e)
-  console.log(rsa.privateKey.d)
-  console.log("SE ESTA EJECUTANDO ESTO")
-  //console.log(keyPair)
+  console.log("ok")
 }
 
 async function postNonRepudiation(req, res) {   //tendre que hacer el digitalSignature y el verifyProof
@@ -31,11 +28,12 @@ async function postNonRepudiation(req, res) {   //tendre que hacer el digitalSig
     let proof = bc.hexToBigint(req.body.proof.proof);
     let ver = await VerifyProof(proof, receptionbody)
     if (ver=="verify"){
+      console.log("de puting madre")
       let date = new Date()
       const unixtime = date.valueOf()
-      this.bodysendserver = {type: 4, src: receptionbody.src, dst: receptionbody.dst, ttp: receptionbody.ttp, ts: unixtime, msg: receptionbody.msg}
-      let bodysendclient = {type: 4, src: receptionbody.src, dst: receptionbody.dst, ttp: receptionbody.ttp, ts: unixtime}  //sin el mensaje
-      let Pkp = await digitalSignature(bodysendclient)  // ¿preguntar si se hace el Pkp con el del mensaje como vemos en el pdf?
+      bodysendserver = {type: "4", src: receptionbody.src, dst: receptionbody.dst, ttp: receptionbody.ttp, ts: unixtime, msg: receptionbody.msg}
+      let bodysendclient = {type: "4", src: receptionbody.src, dst: receptionbody.dst, ttp: receptionbody.ttp, ts: unixtime}  //sin el mensaje
+      Pkp = await digitalSignature(bodysendserver)  // ¿preguntar si se hace el Pkp con el del mensaje como vemos en el pdf?
       let objclient: Object = {
         body: bodysendclient,
         proof: {type: "publication", proof: Pkp, fields:["type", "src", "dst", "ttp", "ts"]}, 
@@ -47,6 +45,7 @@ async function postNonRepudiation(req, res) {   //tendre que hacer el digitalSig
     res.status(501).send({message: "va algo mal"})
   }
   catch(err) {
+    console.log(err)
     res.status(500).send ({ message: err})
   }
 }
@@ -55,13 +54,16 @@ async function postNonRepudiation(req, res) {   //tendre que hacer el digitalSig
 async function getObjectServer(req, res) {    //lo necesito porque le debo pasar al cliente mi PubKey (en el paso 3)
 
   try {
+ 
+    bodysendserver.type="5"
     //keyPair = await rsa.generateRandomKeys(); //NO PONER this.
+    Pkp = await digitalSignature(bodysendserver)
     let objserver: Object = {
-      body: this.bodysendserver,
+      body: bodysendserver,
       proof: {type: "publication", proof: Pkp, fields:["type", "src", "dst", "ttp", "ts", "msg"]},
     }
-
-    res.status(200).send({
+    console.log(objserver)
+    return res.status(200).send({
       object: objserver,
     })
   }
@@ -98,6 +100,7 @@ async function postpubKeyNonRepudiation(req, res) {   //el cliente me pasa su pu
     console.log("TTP, esto es la e:" + e)
     console.log("TTP, esto es la n:" + n)
     pubKeyClientnon = new PublicKey (e, n)  //creo una nueva publicKey del cliente 
+    console.log("ha llegado pub key: "+ pubKeyClientnon)
     return res.status(200).send({message: "La TTP ya tiene tu publicKey"})
   }
   catch(err) {
@@ -132,7 +135,9 @@ async function getFraseRSA(req, res) {
 
   async function digitalSignature(obj:Object){
     const digest = await objectSha.digest(obj)
-    return bc.bigintToHex(rsa.privateKey.sign(bc.hexToBigint(digest))); //si no va cambiar a hex
+    const test = await bc.bigintToHex(rsa.privateKey.sign(bc.hexToBigint(digest))); //si no va cambiar a hex
+  
+    return test; //si no va cambiar a hex
   }
 
   async function VerifyProof(proof:Object, body:Object)  //verifica con la pubKey de A (cliente)
