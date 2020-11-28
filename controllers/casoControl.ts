@@ -97,10 +97,7 @@ async function postpubKeyNonRepudiation(req, res) {   //el cliente me pasa su pu
     let n = req.body.n;
     e = bc.hexToBigint(e)
     n =  await bc.hexToBigint(n)
-    console.log("TTP, esto es la e:" + e)
-    console.log("TTP, esto es la n:" + n)
     pubKeyClientnon = new PublicKey (e, n)  //creo una nueva publicKey del cliente 
-    console.log("ha llegado pub key: "+ pubKeyClientnon)
     return res.status(200).send({message: "La TTP ya tiene tu publicKey"})
   }
   catch(err) {
