@@ -28,7 +28,7 @@ async function postNonRepudiation(req, res) {   //tendre que hacer el digitalSig
     let proof = bc.hexToBigint(req.body.proof.proof);
     let ver = await VerifyProof(proof, receptionbody)
     if (ver=="verify"){
-      console.log("de puting madre")
+      console.log("se verifica correcto")
       let date = new Date()
       const unixtime = date.valueOf()
       bodysendserver = {type: "4", src: receptionbody.src, dst: receptionbody.dst, ttp: receptionbody.ttp, ts: unixtime, msg: receptionbody.msg}
